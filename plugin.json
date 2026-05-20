@@ -1,0 +1,13 @@
+{
+  "name": "miro-ai-github-agent",
+  "description": "Miro-specific agentic capabilities for GitHub",
+  "version": "0.1.0",
+  "author": {
+    "name": "Miro",
+    "email": "devrel@miro.com"
+  },
+  "license": "MIT",
+  "agents": "agents/",
+  "skills": "skills/",
+  "hooks": "hooks.json"
+}
