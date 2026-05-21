@@ -1,7 +1,6 @@
 ---
 name: miro-agent
 description: Helps users with Miro-specific workflows on GitHub
-disable-model-invocation: true
 tools: ["bash", "view", "edit"]
 mcp-servers:
   miro:
