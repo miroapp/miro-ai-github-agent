@@ -11,6 +11,19 @@ A **GitHub AgentHQ Plugin** that brings Miro-specific agentic capabilities into 
 | Skills | `skills/<name>/SKILL.md` | Discrete, callable capabilities the agents can invoke |
 | Hooks | `hooks.json` | Deterministic event handlers (e.g. `before:tool:bash`) |
 
+## Bundled skills
+
+| Skill | What it does |
+|---|---|
+| `miro-browse` | Explore, list, summarize, or inspect items on a Miro board |
+| `miro-code-review` | Visual code review on a board from a PR/MR, local changes, or branch diff |
+| `miro-code-spec` | Extract a board's specs (docs, diagrams, prototypes, tables) into local `.miro/specs/` files |
+| `miro-diagram` | Create or update diagrams (flowchart, mindmap, UML, ER) on a board |
+| `miro-doc` | Create or edit a Google-Docs-style markdown document on a board |
+| `miro-table` | Create or update a structured table on a board |
+
+Each skill lives under `skills/<name>/SKILL.md`; some include supporting reference docs alongside.
+
 ## MCP integrations
 
 The main agent is wired to the **Miro MCP server** at `https://mcp.miro.com/` (HTTP transport, OIDC-authenticated). It exposes Miro's API surface — boards, items, docs, diagrams, tables, work items, comments, etc. — as tools the agent can call via inference.
