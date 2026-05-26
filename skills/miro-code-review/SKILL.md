@@ -7,7 +7,7 @@ description: Use when the user wants to create a visual code review on a Miro bo
 
 Generate a comprehensive visual code review on a Miro board from a pull/merge request, local changes, or a branch comparison. Includes architecture analysis, security review, and optionally enriches with enterprise documentation. After the artifacts are created, link them back from the PR/MR description so reviewers can find them without leaving their forge.
 
-The user provides a Miro board URL plus one source: a PR/MR number, `owner/repo#number` (or `group/project!number`), a full PR/MR URL, the keyword "local changes", or a branch name to compare against the default branch. The skill is platform-agnostic: it detects the forge from the URL or the configured git remote and uses whichever CLI is available locally.
+The user provides one source: a PR/MR number, `owner/repo#number` (or `group/project!number`), a full PR/MR URL, the keyword "local changes", or a branch name to compare against the default branch. A Miro board URL is **optional** — if none is provided, the skill creates a fresh board via the Miro MCP `board_create` tool (see §1.5). The skill is platform-agnostic: it detects the forge from the URL or the configured git remote and uses whichever CLI is available locally.
 
 ## Workflow
 
@@ -31,6 +31,24 @@ Pick the CLI based on what's installed and what the source points at. Do not ass
 - For local / branch-comparison sources, plain `git` is sufficient — no platform CLI needed
 
 State the detected platform and tool in chat output before proceeding.
+
+### 1.5. Resolve the Miro board
+
+If the user supplied a board URL, capture it as `BOARD_URL` and announce `Using board: <BOARD_URL>` in chat. Otherwise create one with the Miro MCP `board_create` tool *before* proceeding to §2 — every downstream step assumes the board exists.
+
+**Naming the new board.** Derive the name from the source identified in §1:
+
+- PR/MR source → `Code review: <PR/MR title>` (truncate to ~80 chars if needed)
+- Branch comparison → `Code review: <branch> → <default-branch>`
+- Local changes → `Code review: <repo-name> (local changes)`
+
+If the PR/MR title isn't fetched yet (you may not have hit §2 by this point), fall back to `Code review: <repo-name>` and skip renaming — the board name is cosmetic and does not need to be perfect.
+
+After creation, set `BOARD_URL` to the URL returned by the tool and announce it in chat once:
+
+> Created Miro board: <BOARD_URL>
+
+Use `BOARD_URL` everywhere downstream that previously referenced "the Miro board". A newly created board has no `moveToWidget` parameter, so §6's link-back logic naturally falls through to the plain board URL.
 
 ### 2. Extract Changes
 
