@@ -1,7 +1,7 @@
 ---
 name: miro-agent
 description: Helps users with Miro-specific workflows on GitHub
-tools: ["bash", "view", "edit"]
+tools: ["bash", "view", "edit", "miro/*"]
 mcp-servers:
   miro:
     type: http
