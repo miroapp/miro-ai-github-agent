@@ -26,12 +26,16 @@ Capture each frame's ID as `CURRENT_FRAME_ID` and `FUTURE_FRAME_ID`.
 
 ### 2. List the items in each frame
 
-For each frame, list its child items and pair section headers with the diagram that immediately follows. Build two parallel maps keyed by header text:
+For each frame, list its child items and pair each **section-overview doc** with the diagram that immediately follows it. Read each doc with `doc_get` and extract its **first H1 line** — that's the section's canonical title. Ignore the rest of the doc body for pairing purposes (the body is allowed to diverge between frames; only the H1 must match).
+
+Build two parallel maps keyed by H1:
 
 ```
-current_by_title: { "<header text>": <diagram_id> }
-future_by_title:  { "<header text>": <diagram_id> }
+current_by_h1: { "<H1 line text>": { doc_id, diagram_id, doc_body } }
+future_by_h1:  { "<H1 line text>": { doc_id, diagram_id, doc_body } }
 ```
+
+Capture `doc_body` for both maps — when the Future doc body has been edited (e.g. the user added planning notes), surface that as part of the delta in §3.
 
 **Tool reference for this step:**
 
@@ -44,13 +48,13 @@ future_by_title:  { "<header text>": <diagram_id> }
 
 ### 3. Compute the delta per section
 
-For every title key across the two maps:
+For every H1 key across the two maps:
 
 | Case | Detection | Treatment |
 |---|---|---|
-| **Modified** | Title in both maps | Fetch both diagrams' Mermaid DSL via `diagram_get_dsl`, then structural-diff |
-| **Added** | Title only in `future_by_title` | The user is introducing a new system/module/flow |
-| **Removed** | Title only in `current_by_title` | The user is removing a system/module/flow |
+| **Modified** | H1 in both maps | Fetch both diagrams' Mermaid DSL via `diagram_get_dsl`, then structural-diff; also diff the doc bodies if the Future body has been edited |
+| **Added** | H1 only in `future_by_h1` | The user is introducing a new system/module/flow |
+| **Removed** | H1 only in `current_by_h1` | The user is removing a system/module/flow |
 
 For modified diagrams, prefer a **structural** diff over a text diff — parse the Mermaid DSL into nodes and edges and report:
 

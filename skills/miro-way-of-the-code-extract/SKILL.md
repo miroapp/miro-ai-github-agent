@@ -43,18 +43,80 @@ Capture the resulting IDs as `CURRENT_FRAME_ID` and `FUTURE_FRAME_ID`.
 
 ### 4. Populate both frames identically
 
-For **each** of the two frames, place the same set of diagrams in the same vertical order. The pairing matters — the implement skill matches Current ↔ Future diagrams by their **section-header text**, so the headers must be identical across frames.
+For **each** of the two frames, place the same set of items in the same vertical order. Pairing across frames relies on the **H1 line** of each section-overview doc, so the H1 must stay identical across frames; the doc body may diverge (e.g. the user might add planning notes in the Future frame).
+
+Each section is a pair: a **section-overview doc** (with H1 + body describing the section) followed by a **Mermaid diagram** that visualizes the same content. The doc carries the prose, the diagram carries the shape — both are needed.
 
 Inside each frame, top-to-bottom:
 
-1. **Section header** (`doc_create` with a single H1 line) — `System Map`
+1. **System Map overview doc** (`doc_create`) — see template below
 2. The **§4a system map** Mermaid diagram (`diagram_create_mermaid`)
 3. For each system identified in §1, in alphabetical order by system name:
-   1. Section header (`doc_create` with H1) — `Module Structure: <system-name>`
+   1. **Module overview doc** (`doc_create`) — see template below
    2. The §4b module diagram for that system (`diagram_create_mermaid`)
 4. For each principal user flow from §3, in the order they were captured:
-   1. Section header (`doc_create` with H1) — `Flow: <flow-name>`
+   1. **Flow overview doc** (`doc_create`) — see template below
    2. The §4c sequence diagram (`diagram_create_mermaid`)
+
+#### Doc templates
+
+Use these as the body of each section-overview doc. Keep each one concise — a reviewer should be able to skim it in 30 seconds. Omit a section heading (e.g. "External dependencies") when it has no content rather than leaving it empty.
+
+**System Map overview:**
+
+```markdown
+# System Map
+
+<one paragraph describing what the codebase is at a high level — monorepo vs single app, the user-facing surface, the dominant runtime>
+
+## Systems
+
+- **<system-name>** (<type>, <runtime>) — <purpose>; <public surface in one phrase>
+- **<system-name>** (<type>, <runtime>) — …
+
+## Cross-system surfaces
+
+- <surface> (e.g. `HTTP /api/v1`) — <who calls who>
+```
+
+**Module overview** (one per system):
+
+```markdown
+# Module Structure: <system-name>
+
+<one paragraph describing the system's role in the codebase, its entry point, and how the modules below fit together>
+
+## Modules
+
+- **<module-name>** — <responsibility>; depends on <internal modules>; exports/surfaces <Z>
+- **<module-name>** — …
+
+## External dependencies
+
+- <package or service> — <what it's used for>
+```
+
+**Flow overview** (one per flow):
+
+```markdown
+# Flow: <flow-name>
+
+<one paragraph describing the flow from external trigger to terminal effect>
+
+## Actors
+
+- <actor> — <role>
+
+## Steps
+
+1. <step-1 description, naming the module/handler it lives in>
+2. <step-2 description>
+…
+
+## Datastores / external services touched
+
+- <store> — <read/write/both>
+```
 
 **Tool reference for this step:**
 
@@ -63,10 +125,10 @@ Inside each frame, top-to-bottom:
 | `layout_create` | Create the two frames; set frame titles as part of the payload |
 | `layout_get_dsl` | Inspect the layout DSL schema if needed |
 | `diagram_create_mermaid` | Render every Mermaid diagram twice — once per frame |
-| `doc_create` | Each section header (single H1) |
-| `board_list_items` | Verify the headers across frames match after population |
+| `doc_create` | Each section-overview doc (H1 + body per the templates above) |
+| `board_list_items` | Verify the H1 lines across frames match after population |
 
-After populating both frames, verify with `board_list_items` that every section header appearing in the Current frame also appears verbatim in the Future frame. If any mismatch exists, fix it before reporting.
+After populating both frames, verify with `board_list_items` that every section's H1 line appearing in the Current frame also appears verbatim in the Future frame. If any mismatch exists, fix it before reporting.
 
 ### 5. Add a guidance note above the frames
 
@@ -100,13 +162,13 @@ Report in chat:
 
 ### Pairing convention
 
-The implement skill matches diagrams across frames by **identical section-header text**. Don't rename headers, don't insert extra headers, don't reorder unless you can guarantee the same reorder in both frames. The implement skill handles three diff cases:
+The implement skill matches sections across frames by **the H1 line** of each section-overview doc — not the full doc body. Don't rename the H1, don't insert extra H1-headed docs, don't reorder unless you can guarantee the same reorder in both frames. The implement skill handles three diff cases:
 
-- Title exists in both frames → modified diagram, structural diff applied
-- Title only in Future → additive change (new system / module / flow)
-- Title only in Current → removal
+- H1 exists in both frames → modified diagram, structural diff applied to the paired Mermaid
+- H1 only in Future → additive change (new system / module / flow)
+- H1 only in Current → removal
 
-All three are valid. The constraint is that section-header text stays stable across edits.
+All three are valid. The constraint is that the H1 line stays stable across edits; the doc body can diverge freely (the user may add planning notes in the Future doc, and that's fine).
 
 ### Why two identical frames
 

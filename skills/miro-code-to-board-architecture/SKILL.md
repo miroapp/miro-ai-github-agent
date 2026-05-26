@@ -224,11 +224,15 @@ Size the frame wide enough that the system map renders at readable scale without
 
 Per system, in a vertical stack inside the frame:
 
-- A short `doc_create` with the system name and type as an H1 (acts as the section header)
+- A **module overview doc** (`doc_create`) — H1 `Module Structure: <system-name>`, then a one-paragraph role description, a `## Modules` section listing each module with responsibility + dependencies + exports, and a `## External dependencies` section if non-empty. Keep it skim-readable.
 - The §4b module diagram for that system — `diagram_create_mermaid`
-- The §4c user-flow diagrams for flows owned by that system — `diagram_create_mermaid` per flow
+- For each user-flow owned by this system:
+  - A **flow overview doc** (`doc_create`) — H1 `Flow: <flow-name>`, then a one-paragraph trigger-to-effect description, a `## Steps` list (numbered, naming the module/handler each step lives in), and `## Datastores touched` if non-empty.
+  - The §4c sequence diagram — `diagram_create_mermaid`
 
-After all per-system stacks, place **cross-system flows** as a final section — these span boundaries and most often surface architectural issues.
+After all per-system stacks, place **cross-system flows** as a final section — these span boundaries and most often surface architectural issues. Use the same flow-overview doc shape for each.
+
+Never emit a section as an H1-only doc with no body — the diagram visualizes the shape, the doc carries the prose. Both are needed.
 
 #### Frames 3..(2+S) — Security flows (one frame per critical flow)
 
