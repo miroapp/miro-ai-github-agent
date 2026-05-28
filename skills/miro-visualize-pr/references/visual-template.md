@@ -4,7 +4,8 @@ The board is one frame composed of **4 vertical bands**. Every run produces the 
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│ Frame title:  "PR Review — <PR_TITLE>"                                        │
+│ Frame title:  "Visualize PR: <PR_TITLE> #<PR_NUMBER>"                         │
+│ (same string as the board name; see SKILL.md §8)                              │
 │                                                                               │
 │ ┌───────────────────────────────────────────────────────────────────────────┐ │
 │ │ BAND 1 — HEADER BANNER                                                    │ │
@@ -28,18 +29,18 @@ The board is one frame composed of **4 vertical bands**. Every run produces the 
 │ │ │  Highlighted nodes show what changed in this PR                    │    │ │
 │ │ └────────────────────────────────────────────────────────────────────┘    │ │
 │ │                                                                           │ │
-│ │   ┌────────────────────────┐         ┌────────────────────────┐           │ │
-│ │   │ [❌ BEFORE — pill] red │         │ [✅ AFTER — pill] green│           │ │
-│ │   │ ┌────────────────────┐ │         │ ┌────────────────────┐ │           │ │
-│ │   │ │  BEFORE Mermaid    │ │         │ │  AFTER Mermaid     │ │           │ │
-│ │   │ │  flowchart (red    │ │         │ │  flowchart (delta- │ │           │ │
-│ │   │ │  palette)          │ │         │ │  marked nodes)     │ │           │ │
-│ │   │ └────────────────────┘ │         │ └────────────────────┘ │           │ │
-│ │   └────────────────────────┘         └────────────────────────┘           │ │
+│ │   [❌ BEFORE — Insecure Monolithic Auth]    [✅ AFTER — Hardened …]      │ │
+│ │   ╭─── container card (slate-50) ───╮    ╭─── container card (slate-50) ╮│ │
+│ │   │                                  │    │                              ││ │
+│ │   │       BEFORE Mermaid             │    │       AFTER Mermaid          ││ │
+│ │   │       (flowchart, red palette)   │    │       (flowchart, delta-     ││ │
+│ │   │                                  │    │        marked nodes)         ││ │
+│ │   ╰──────────────────────────────────╯    ╰──────────────────────────────╯│ │
 │ │                                                                           │ │
-│ │   ┌── LEGEND BAR ──────────────────────────────────────────────────────┐  │ │
-│ │   │ ▮ Removed/vulnerable  ▮ New  ▮ Modified  ▮ Unchanged               │  │ │
-│ │   └────────────────────────────────────────────────────────────────────┘  │ │
+│ │           ╭── LEGEND CARD (white, slate-200 border, centered) ──╮         │ │
+│ │           │ ▮ Removed/vulnerable  ▮ New/hardened                │         │ │
+│ │           │ ▮ Unchanged           ▮ Modified in this PR         │         │ │
+│ │           ╰─────────────────────────────────────────────────────╯         │ │
 │ └───────────────────────────────────────────────────────────────────────────┘ │
 │                                                                               │
 │ ┌───────────────────────────────────────────────────────────────────────────┐ │
@@ -62,11 +63,14 @@ The board is one frame composed of **4 vertical bands**. Every run produces the 
 │ │ │  Files touched (with risk tag) — narrative of what changed        │     │ │
 │ │ └───────────────────────────────────────────────────────────────────┘     │ │
 │ │                                                                           │ │
-│ │ ┌─────────────────────────┐    ┌──────────────────────────────┐           │ │
-│ │ │ Files Changed table     │    │ Summary of Changes (doc)     │           │ │
-│ │ │ Δ | Impact | File       │    │ # heading + emoji sections   │           │ │
-│ │ │ Sorted by impact desc   │    │ skip empty sections          │           │ │
-│ │ └─────────────────────────┘    └──────────────────────────────┘           │ │
+│ │ ┌─────────────────────────────┐    ┌──────────────────────────────┐       │ │
+│ │ │ Files Changed table         │    │ Summary of Changes (doc)     │       │ │
+│ │ │ File | Δ | Type | Impact    │    │ # 📋 Summary heading +       │       │ │
+│ │ │ Type chips: Source/Test/    │    │ emoji-dense sections:        │       │ │
+│ │ │   Config/Schema/Docs/Infra  │    │ 🔒 Auth · 🔑 Authorization · │       │ │
+│ │ │ Sorted by impact desc       │    │ 🔐 Crypto · 🧪 Testing · 🚨  │       │ │
+│ │ │                             │    │ Migration · ✅ Checklist     │       │ │
+│ │ └─────────────────────────────┘    └──────────────────────────────┘       │ │
 │ └───────────────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -82,14 +86,16 @@ The board is one frame composed of **4 vertical bands**. Every run produces the 
 | Arch | Section title strip | `shape_create` (rectangle) + `text_create` | Fill `#F1F5F9`, text `#0F172A` |
 | Arch | BEFORE pill | `shape_create` (rounded rect) + `text_create` | Fill `#FEE2E2`, stroke `#EF4444`, text `#991B1B` |
 | Arch | AFTER pill | `shape_create` (rounded rect) + `text_create` | Fill `#DCFCE7`, stroke `#10B981`, text `#065F46` |
-| Arch | BEFORE/AFTER diagram | `diagram_create_mermaid` | `flowchart TB`; always include classDef block |
-| Arch | Legend swatch (×4) | `shape_create` (small square) | Per palette in `palette.md` |
-| Arch | Legend label (×4) | `text_create` | Small, color `#0F172A` |
+| Arch | Diagram container card (×2) | `shape_create` (rounded rect) | Fill `#F8FAFC`, stroke `#E2E8F0`, radius `16px` — anchors each diagram |
+| Arch | BEFORE/AFTER diagram | `diagram_create_mermaid` | `flowchart TB`; always include classDef block; placed inside container card |
+| Arch | Legend card | `shape_create` (rounded rect) | Fill `#FFFFFF`, stroke `#E2E8F0`, radius `12px`, centered |
+| Arch | Legend swatch (×4) | `shape_create` (small square, 14×14px) | Per delta palette; inside the card |
+| Arch | Legend label (×4) | `text_create` | `13px`, color `#0F172A`; immediately right of swatch |
 | OWASP | Section title strip | `shape_create` + `text_create` | Fill `#FEF2F2`, text `#7F1D1D` |
 | OWASP | Threats table | `table_create` | Severity column is fixed-set (color-coded) |
 | Change | Section title strip | `shape_create` + `text_create` | Fill `#EFF6FF`, text `#1E3A8A` |
-| Change | Files Changed table | `table_create` | Impact column is fixed-set (color-coded) |
-| Change | Summary doc | `doc_create` | Markdown; skip empty sections |
+| Change | Files Changed table | `table_create` | **Type** + **Impact** columns both fixed-set (color-coded); File / Δ / Type / Impact column order |
+| Change | Summary doc | `doc_create` | Emoji-dense markdown; skip empty sections |
 
 ## Why 4 bands and not 3 or 5
 

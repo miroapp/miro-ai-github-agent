@@ -100,13 +100,37 @@ For: `REFACTOR`, `FEATURE`, `BUGFIX`, `CHORE`, `PERF`, `A11Y`, `I18N`
 
 ## Table column color codes (fixed-set cells)
 
-Applied to the **Severity** column of the OWASP table and the **Impact** column of the Files Changed table.
+### Severity (OWASP table) and Impact (Files Changed table)
 
 | Value | Stroke color | Fill |
 |---|---|---|
 | High | `#EF4444` (red-500) | `#FEE2E2` (red-100) |
 | Medium | `#F59E0B` (amber-500) | `#FEF3C7` (amber-100) |
 | Low | `#10B981` (emerald-500) | `#DCFCE7` (green-100) |
+
+### Type (Files Changed table)
+
+One chip color per file kind. The classification rules live in SKILL.md §9h "Type taxonomy" — the colors are below. Use these consistently so a reviewer who learns the color on one PR can read the next.
+
+| Type | Chip fill | Chip text |
+|---|---|---|
+| `Source` | `#DBEAFE` (blue-100) | `#1E3A8A` (blue-900) |
+| `Test` | `#DCFCE7` (green-100) | `#065F46` (green-800) |
+| `Config` | `#E9D5FF` (purple-200) | `#581C87` (purple-900) |
+| `Schema` | `#FED7AA` (orange-200) | `#9A3412` (orange-900) |
+| `Docs` | `#F1F5F9` (slate-100) | `#475569` (slate-600) |
+| `Infra` | `#E0E7FF` (indigo-100) | `#3730A3` (indigo-900) |
+| `Build` | `#CFFAFE` (cyan-100) | `#155E75` (cyan-800) |
+
+## Card / container surfaces
+
+These are the "panel" surfaces that hold other content. Subtle by design — they anchor without competing.
+
+| Element | Fill | Stroke | Stroke width | Corner radius |
+|---|---|---|---|---|
+| Diagram container card (§9e) | `#F8FAFC` (slate-50) | `#E2E8F0` (slate-200) | `1px` | `16px` |
+| Legend card (§9f) | `#FFFFFF` | `#E2E8F0` (slate-200) | `1px` | `12px` |
+| Legend swatch (inside legend card) | per delta palette | per delta palette | `1px` | `3px` |
 
 ## What not to use
 

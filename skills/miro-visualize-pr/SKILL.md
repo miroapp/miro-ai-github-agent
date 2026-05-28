@@ -198,19 +198,34 @@ Otherwise proceed to §8.
 
 ### 8. Create the Miro board
 
-**Always create a fresh board** with the Miro MCP `board_create` tool. **The board name MUST be exactly `PR_TITLE`** from §2, with no prefix, no suffix, no repo name, no "PR Review —" prefix.
+**Always create a fresh board** with the Miro MCP `board_create` tool. **The board name MUST follow this exact format:**
 
-- ✅ `"Add Amsterdam AI conference tracker and branch deployment workflow support"`
+```
+Visualize PR: <PR_TITLE> #<PR_NUMBER>
+```
+
+- ✅ `"Visualize PR: Add Amsterdam AI conference tracker and branch deployment workflow support #23"`
+- ✅ `"Visualize PR: Refactor Authentication to OAuth2 + JWT #847"`
 - ❌ `"PR Review — Add Amsterdam AI conference tracker (eng-brand-machine#23)"`
+- ❌ `"Add Amsterdam AI conference tracker and branch deployment workflow support"` (missing `Visualize PR:` prefix and `#N` suffix)
 - ❌ `"miro-pr-#42: Add Amsterdam …"`
 
-Truncate to ~150 chars only if Miro rejects longer values; truncate at a word boundary.
+The `Visualize PR: ` prefix and ` #<N>` suffix are **non-negotiable** — the prefix makes boards from this skill instantly distinguishable from other Miro boards in a search; the `#N` suffix makes them sortable by PR number and dedupe-able.
 
-For local-changes / branch-comparison sources, use the synthesized `PR_TITLE` from §2 verbatim.
+**For sources without a PR number** (local-changes / branch-comparison): drop the `#N` suffix and use:
+
+```
+Visualize PR: <PR_TITLE>
+```
+
+…where `PR_TITLE` is the synthesized title from §2 (e.g. `"Visualize PR: Local changes — eng-brand-machine"` or `"Visualize PR: Branch feat/oauth2 → main"`).
+
+Truncate to ~150 chars only if Miro rejects longer values; truncate `PR_TITLE` at a word boundary, **never** the `Visualize PR: ` prefix or the ` #<N>` suffix.
 
 Capture the resulting URL as `BOARD_URL` and announce:
 
 > Created Miro board: <BOARD_URL>
+> Board name: "Visualize PR: <PR_TITLE> #<PR_NUMBER>"
 
 ### 9. Compose the board — the polished template
 
@@ -264,6 +279,25 @@ For fixed-set table columns (`Impact`, `Severity`):
 - `Medium` → stroke `#F59E0B`
 - `Low` → stroke `#10B981`
 
+For the **Type** column of the Files Changed table (§9h Type taxonomy):
+
+| Type | Chip fill | Chip text |
+|---|---|---|
+| `Source` | `#DBEAFE` (blue-100) | `#1E3A8A` |
+| `Test` | `#DCFCE7` (green-100) | `#065F46` |
+| `Config` | `#E9D5FF` (purple-200) | `#581C87` |
+| `Schema` | `#FED7AA` (orange-200) | `#9A3412` |
+| `Docs` | `#F1F5F9` (slate-100) | `#475569` |
+| `Infra` | `#E0E7FF` (indigo-100) | `#3730A3` |
+| `Build` | `#CFFAFE` (cyan-100) | `#155E75` |
+
+Card / container surfaces (used by the legend card §9f and the diagram containers §9e):
+
+| Element | Fill | Stroke | Corner radius |
+|---|---|---|---|
+| Diagram container card | `#F8FAFC` (slate-50) | `#E2E8F0` (slate-200) | `16px` |
+| Legend card | `#FFFFFF` | `#E2E8F0` (slate-200) | `12px` |
+
 #### 9b. DSL prerequisites (call once per run)
 
 Before any creation calls, fetch the canonical DSL specs from the Miro MCP server and cache them for the run:
@@ -284,9 +318,15 @@ Cache the returned specs in conversation memory. Announce once in chat:
 
 #### 9c. Create the frame + header banner (band 1)
 
-**Frame.** Use `layout_create` (with the layout DSL fetched in §9b) to make a single large frame at `(0, 0)`. The frame title is `PR Review — <PR_TITLE>` (truncate the title only if it makes the caption unreadable). The frame must be wide enough that the bands below don't wrap awkwardly.
+**Frame.** Use `layout_create` (with the layout DSL fetched in §9b) to make a single large frame at `(0, 0)`. The frame title is the **same string as the board name** from §8:
 
-> **Frame title vs board name.** The **board name** is `PR_TITLE` exactly (§8); the **frame title** has the `"PR Review — "` prefix so the frame is identifiable when many frames are visible at once in a multi-board pinboard view. Don't confuse the two — board name is naked, frame title is prefixed.
+```
+Visualize PR: <PR_TITLE> #<PR_NUMBER>
+```
+
+(or, for sources without a PR number, `Visualize PR: <PR_TITLE>`). Keeping the frame title and board name identical is intentional — it means a frame URL with `moveToWidget=<frame_id>` always lands the user on a frame whose caption matches the board they think they're on.
+
+The frame must be wide enough that the bands below don't wrap awkwardly.
 
 **Header banner.** Inside the frame at the top, build a horizontal banner with these elements stacked vertically inside it:
 
@@ -308,15 +348,24 @@ Every section in §9d–§9h starts with this same strip pattern (only the title
 
 #### 9e. BEFORE / AFTER pill labels + diagrams
 
-Below the §9d title strip, lay out **two columns side by side**:
+Below the §9d title strip, lay out **two columns side by side**. Each column contains, top to bottom:
+
+1. A **pill-shaped label** (rounded rectangle) naming the architectural state
+2. A **soft container card** (rounded rectangle background) holding the diagram inside it
 
 **Left column (BEFORE):**
-1. A **pill-shaped label** (`shape_create`, rounded rectangle, fill `#FEE2E2`, stroke `#EF4444`) containing: `❌ BEFORE — <one-line subtitle>` (e.g. `BEFORE — Insecure Monolithic Auth`).
-2. The **BEFORE diagram** (`diagram_create_mermaid`) — flowchart `TB` showing the pre-PR architecture of the area this PR touches.
+
+1. **Pill label** — `shape_create` rounded rectangle, fill `#FEE2E2`, stroke `#EF4444`, text `#991B1B`. Content: `❌ BEFORE — <one-line subtitle>` (e.g. `BEFORE — Insecure Monolithic Auth`). Subtitle should name the architectural *state*, not just say "before".
+2. **Container card** — `shape_create` rounded rectangle, fill `#F8FAFC` (slate-50), stroke `#E2E8F0` (slate-200), stroke width `1px`, corner radius `16px`. The container's job is to **visually anchor the diagram** so it doesn't float on the band background — pill label sits *above* the container, diagram sits *inside* it with `24px` padding on all sides.
+3. **BEFORE diagram** — `diagram_create_mermaid`, flowchart `TB` showing the pre-PR architecture of the area this PR touches. Placed inside the container card.
 
 **Right column (AFTER):**
-1. A **pill-shaped label** (`shape_create`, rounded rectangle, fill `#DCFCE7`, stroke `#10B981`) containing: `✅ AFTER — <one-line subtitle>` (e.g. `AFTER — Hardened OAuth2 / JWT Flow`).
-2. The **AFTER diagram** (`diagram_create_mermaid`) — same shape as BEFORE, with per-node delta marking.
+
+1. **Pill label** — `shape_create` rounded rectangle, fill `#DCFCE7`, stroke `#10B981`, text `#065F46`. Content: `✅ AFTER — <one-line subtitle>` (e.g. `AFTER — Hardened OAuth2 / JWT Flow`).
+2. **Container card** — same styling as the BEFORE container (`#F8FAFC` fill, `#E2E8F0` stroke, `16px` radius). The two containers must be identically sized so the diagrams visually compare side by side.
+3. **AFTER diagram** — `diagram_create_mermaid`, same shape as BEFORE, with per-node delta marking.
+
+The container cards are the single biggest polish difference between this skill and `miro-code-review` — without them the diagrams look like they're floating loose on the canvas; with them, each diagram reads as a self-contained "slide panel". Use the **same fill / stroke / radius** on both containers so the eye treats them as a matched pair.
 
 **Diagram scope:**
 
@@ -373,18 +422,52 @@ flowchart TB
     classDef unchanged fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A
 ```
 
-#### 9f. Color legend bar
+#### 9f. Color legend card
 
-Directly below the two diagrams, span a single **legend bar** across the full width of the architecture band. Four entries left-to-right, each a small colored shape + label:
+Directly below the two diagrams, render the legend as a **single white rounded card** that's visually distinct from the surrounding band — not a stripe of loose swatches. The card sits **centered** under the diagrams, with the four legend entries in a single horizontal row inside it.
 
-| Swatch fill | Stroke | Label |
-|---|---|---|
-| `#FEE2E2` | `#EF4444` | `Removed / vulnerable component` |
-| `#DCFCE7` | `#10B981` | `New component` |
-| `#FEF3C7` | `#F59E0B` | `Modified in this PR` |
-| `#DBEAFE` | `#3B82F6` | `Unchanged` |
+**Card container** — `shape_create` rounded rectangle:
 
-Build with `shape_create` for the swatches and `text_create` for the labels. The legend is what lets a non-engineer read the diagrams — never skip it.
+| Property | Value |
+|---|---|
+| Fill | `#FFFFFF` |
+| Stroke | `#E2E8F0` (slate-200) |
+| Stroke width | `1px` |
+| Corner radius | `12px` |
+| Shadow | Subtle (`0 1px 2px rgba(15, 23, 42, 0.06)`) when the layout DSL exposes shadow; otherwise omit |
+| Padding | `12px` vertical, `20px` horizontal |
+| Width | ~70% of the architecture band width, centered |
+
+**Inside the card**, four entries side by side in this exact order (each entry = swatch + label as a single horizontal pair, with even spacing between entries):
+
+| # | Swatch fill | Swatch stroke | Label |
+|---|---|---|---|
+| 1 | `#FEE2E2` | `#EF4444` | `Removed / vulnerable component` |
+| 2 | `#DCFCE7` | `#10B981` | `New / hardened component` |
+| 3 | `#DBEAFE` | `#3B82F6` | `Unchanged` |
+| 4 | `#FEF3C7` | `#F59E0B` | `Modified in this PR` |
+
+**Swatch widget specs** (one per entry, `shape_create`):
+
+| Property | Value |
+|---|---|
+| Shape | small filled square |
+| Size | `14×14px` |
+| Stroke width | `1px` |
+| Corner radius | `3px` (slightly rounded, not pill) |
+
+**Label widget specs** (one per entry, `text_create`):
+
+| Property | Value |
+|---|---|
+| Font size | `13px` |
+| Font weight | regular (400) |
+| Color | `#0F172A` (slate-900) |
+| Position | immediately right of swatch, `8px` gap |
+
+**Why the ordering matters:** Removed → New → Unchanged → Modified mirrors the conceptual flow of a PR (what was, what's new, what stayed, what shifted). Don't reorder by hue or alphabetically — the narrative order is part of the scan-ability.
+
+The legend card is what lets a non-engineer read the diagrams — **never skip it**, even on trivial PRs that proceed past §7.
 
 #### 9g. Section title strip + OWASP Threats table
 
@@ -412,52 +495,114 @@ Below the strip, lay out **two artifacts side by side**:
 
 | Column | Type | Notes |
 |---|---|---|
-| Δ | text | `+<additions> / −<deletions>` |
-| Impact | select (fixed-set) | High / Medium / Low — same palette colors |
 | File | text | Clickable URL when `LINK_TEMPLATE` is set; plain path otherwise |
+| Δ | text | `+<additions> / −<deletions>` |
+| Type | select (fixed-set) | `Source` / `Test` / `Config` / `Schema` / `Docs` / `Infra` / `Build` — color-coded (see Type taxonomy below) |
+| Impact | select (fixed-set) | `High` / `Medium` / `Low` — same palette colors as the OWASP Severity column |
 
-One row per changed file, sorted by impact descending, then by `additions+deletions` descending within an impact tier. For very large PRs (30+ files), keep the single table.
+One row per changed file, sorted by **Impact descending**, then by `additions+deletions` descending within an impact tier. For very large PRs (30+ files), keep the single table — sorting handles the noise.
 
-**Right — Summary of Changes document** (`doc_create`) — same template as `miro-code-review` §9h. Skip any section that has nothing to say:
+##### Type taxonomy
+
+Each changed file gets exactly one Type, picked by the **first matching** rule in this order:
+
+| Type | Match rules (first match wins) | Chip fill | Chip text |
+|---|---|---|---|
+| `Test` | path contains `__tests__/`, `__mocks__/`, `tests/`, `test/`, `spec/`, or filename matches `*.test.*`, `*.spec.*`, `*_test.go`, `test_*.py`, `*_spec.rb` | `#DCFCE7` (green-100) | `#065F46` |
+| `Schema` | path matches `**/migrations/**`, `**/schema/**`, `**/*.sql`, `**/*.proto`, `**/*.graphql`, `**/openapi.{yml,yaml,json}`, `**/swagger.{yml,yaml,json}` | `#FED7AA` (orange-200) | `#9A3412` |
+| `Infra` | path matches `Dockerfile*`, `docker-compose*.{yml,yaml}`, `**/k8s/**`, `**/helm/**`, `**/terraform/**`, `**/.github/workflows/**`, `**/Jenkinsfile`, `**/.gitlab-ci.yml`, `**/Procfile` | `#E0E7FF` (indigo-100) | `#3730A3` |
+| `Config` | filename matches `*.config.{js,ts,mjs,cjs}`, `.env*`, `package.json`, `tsconfig*.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Gemfile`, `composer.json`, `*.toml`, `*.ini`, `*.yaml`/`*.yml` not already matched | `#E9D5FF` (purple-200) | `#581C87` |
+| `Build` | filename matches `webpack.*`, `vite.*`, `rollup.*`, `esbuild.*`, `Makefile`, `build.gradle*`, `pom.xml`, `*.csproj` | `#CFFAFE` (cyan-100) | `#155E75` |
+| `Docs` | path matches `**/*.md`, `**/*.mdx`, `**/*.rst`, `**/docs/**`, `**/README*`, `**/CHANGELOG*`, `**/LICENSE*` | `#F1F5F9` (slate-100) | `#475569` |
+| `Source` | **default** — anything that didn't match above (the bulk of the rows on most PRs) | `#DBEAFE` (blue-100) | `#1E3A8A` |
+
+The Type column gives reviewers a one-glance read of *what kind of change this PR is*: a wall of `Test` rows means "this is a test-coverage PR"; mostly `Schema` + `Source` means "data-model change"; `Source` + `Infra` means "deployable feature". Without it, a PM scanning the table can't tell a refactor from a test backfill.
+
+**Tie-breaking inside Impact tiers:** within `High`, sort by `additions+deletions` descending. This surfaces the largest high-impact files first.
+
+**Right — Summary of Changes document** (`doc_create`). The doc is **emoji-dense by design** — every section header carries an icon, and every bullet starts with a small leading icon that classifies the change (`✨` added, `🔧` modified, `🗑️` removed, `⚠️` watch-out, `📌` note, `🔗` cross-reference, etc.). The combination turns the doc into something a reviewer can skim in 10 seconds and still come away with the right mental model.
+
+Skip any section that has nothing to say; **never** pad a section to keep it in the doc.
 
 ```markdown
-# Summary of Changes
+# 📋 Summary of Changes
 
-<2–3 sentences describing the overall intent of the PR, derived from the PR title + body + the analysis in §4>
+<2–3 sentences describing the overall intent of the PR, derived from the PR title + body + the analysis in §4. End with a one-liner like: *"Closes <N> OWASP Top-10 categories surfaced in last quarter's pentest."* when there's a concrete tie-in.>
 
-## 🔐 Authentication & Authorization
-- <bullet list of auth/authz changes, or omit the section if none>
+## 🔒 Authentication
+- ✨ **Added** <new auth mechanism> — <one-line why>
+- 🗑️ **Removed** <legacy auth path> — <one-line why>
+- 🔧 **Updated** <existing flow> to <new behavior>
+
+## 🔑 Authorization
+- ✨ **Introduced** centralized RBAC middleware (`authMiddleware.requireRole`)
+- 🛡️ All `/admin/*` and `/billing/*` routes now require explicit role guards
+- 🗑️ Removed implicit `"logged-in == authorized"` assumptions across `userRoutes.js`
 
 ## 🌐 Client changes
-- <client-side bullets — components, state, routing, contract consumption>
+- 🎨 <UI / component / state changes>
+- 🔗 <new endpoint consumed; note the contract>
 
 ## 🛰️ Server changes
-- <server-side bullets — routes, handlers, middleware, services>
+- 🛠️ <route, handler, middleware, service edits>
+- 📦 <new dependency added — and the reason>
 
 ## 🤝 Contract changes
-- <bullets describing changes that cross the client-server boundary: API shape, schema, events. Critical to call out.>
+- ⚠️ **Breaking:** <field renamed / removed / type changed> — consumers must update
+- ✨ <new endpoint / event / schema field>
+- 🔧 <non-breaking shape evolution>
 
-## 🔑 Cryptography & Secrets
-- <bullets if applicable, else omit>
+## 🔐 Cryptography
+- 🔁 Migrated password hashes from **MD5+static salt** → **bcrypt (cost=12) + per-user salt**
+- 🔑 Secrets moved from `.env` files into AWS KMS; runtime fetch via IAM role
+- 🔄 JWT signing keys rotated every 24h via scheduled Lambda
 
 ## 🧪 Testing
-- <test additions / coverage notes>
+- ✅ <N> new unit tests, <M> integration tests against a mock IdP
+- 🐛 Negative-path tests for expired tokens, replay attacks, and CSRF
+- 📈 Coverage <delta>: <before>% → <after>%
 
 ## 🗄️ Data & Migrations
-- <DB schema, migration files, rollback notes>
+- 🆕 New migration `<file>` — <what it does, idempotent? forward-only?>
+- ↩️ Rollback path: <how, or "none — forward-only">
 
-## ⚠️ Migration / Rollout
-- <feature flags, phased rollout, breaking-change coordination notes>
+## 🚨 Migration Notes
+- ⚠️ Existing sessions will be invalidated on deploy — coordinate with on-call
+- 🗃️ DB migration `<file>` is **forward-only**. Backup before applying.
+- 🚦 Feature flag `<flag>` gates the rollout (canary at 5% → 25% → 100%)
+
+## 📊 Observability
+- 📡 New metrics: `<metric.names>`
+- 📜 New log lines at <handler/path> with PII redaction
+- 🔔 Alerts updated: <alert names + thresholds>
 
 ## ✅ Ready-to-merge checklist
-- [ ] CI passing
-- [ ] Security review complete
-- [ ] Contract changes documented (if applicable)
-- [ ] Migration runbook written (if applicable)
-- [ ] Sign-off from <reviewers>
+- [ ] 🤖 All CI checks passing
+- [ ] 🔍 Security review by `@security-team`
+- [ ] 📝 Threat model updated in `docs/SECURITY.md`
+- [ ] 📞 Runbook written for on-call
+- [ ] 👥 Sign-off from `@platform-leads` *(pending)*
 ```
 
-Section heading emoji are visual landmarks for scanning, not decoration. Skip entire sections when they're empty.
+**Emoji conventions** (use consistently, don't invent new ones per run):
+
+| Emoji | Meaning |
+|---|---|
+| ✨ | Added / introduced something new |
+| 🔧 / 🛠️ | Modified / refactored existing |
+| 🗑️ | Removed / deprecated |
+| 🔁 | Migrated / swapped one mechanism for another |
+| 🔗 | Cross-reference (another PR, doc, ticket) |
+| ⚠️ | Watch-out / breaking |
+| 🚨 | Critical attention required |
+| 📌 | Note for reviewers |
+| ✅ | Done / verified |
+| 🐛 | Bug-related |
+| 📈 | Metric / measurement |
+| 🆕 | New file / record |
+| ↩️ | Rollback / revert path |
+
+Headers and inline emoji together turn the doc into a **scannable changelog**, not a wall of prose. Skip entire sections that are empty rather than leaving an empty bullet — the doc's value comes from its density, not its breadth.
 
 #### 9i. Optional extras (only when the user asks)
 
@@ -529,9 +674,9 @@ If the §7 bail-out applied, the entire output is the trivial-PR chat message �
 Otherwise, after completion provide in chat:
 
 1. `BOARD_URL` (with `moveToWidget=<frame_id>` if available so the link opens centered on the frame)
-2. **Board name confirmation**: `Board name: "<PR_TITLE>"` (so the user can verify it was set to the PR title exactly, not a mangled variant)
+2. **Board name confirmation**: `Board name: "Visualize PR: <PR_TITLE> #<PR_NUMBER>"` (so the user can verify the format is exact — `Visualize PR: ` prefix + title + ` #N` suffix — and not a mangled variant)
 3. Confirmation that the PR/MR description was updated (or that a comment was posted as fallback, or that the post step was skipped)
-4. Composition summary: 4 bands rendered — Header banner / Architecture (BEFORE+AFTER+legend) / OWASP (`<N>` rows) / Change Summary (`<M>` files-changed rows + doc with `<K>` sections)
+4. Composition summary: 4 bands rendered — Header banner / Architecture (BEFORE+AFTER containers + legend card) / OWASP (`<N>` rows) / Change Summary (`<M>` files-changed rows across `<T>` Type categories + doc with `<K>` sections)
 5. Client-server touch summary: `client-only | server-only | both | n/a`, with notable contract changes called out
 6. High-impact files requiring careful review
 7. Top security findings (High severity only)
@@ -545,11 +690,17 @@ Otherwise, after completion provide in chat:
 
 If you find yourself wondering which to use: do non-engineers need to look at it? Use this skill. Is it just for the merge reviewer? Use `miro-code-review`.
 
-### Why the board name is exactly the PR title
+### Why the board name format is `Visualize PR: <title> #<number>`
 
-A board named exactly after the PR title is searchable by the same string everyone already uses to talk about the change — in Slack, in the PR URL, in commit history, in the launch doc. Prefixing the board name with `"PR Review — "` or suffixing with the repo name fragments that lookup behavior.
+Three parts, each earning its place:
 
-The **frame** inside the board can carry the `"PR Review — "` prefix (so it's identifiable in a pinboard view that aggregates many frames); the **board** itself cannot.
+- **`Visualize PR: ` prefix** — instantly distinguishes boards from this skill from every other board in a Miro workspace. A reviewer searching for "visualize pr" pulls back exactly the population they want.
+- **`<PR_TITLE>` body** — searchable by the same string everyone already uses to talk about the change in Slack, the PR URL, commit history, the launch doc. The title is what makes the board *findable by topic*.
+- **` #<PR_NUMBER>` suffix** — makes boards sortable by PR number, dedupe-able when the same PR is visualized more than once, and unambiguously linkable from the PR itself.
+
+The **frame** inside the board carries the same string (board name = frame title), so a frame-level deep link with `moveToWidget=<frame_id>` always lands on a caption that matches the board the user thinks they're on.
+
+Earlier versions of this skill used the bare PR title as the board name. That collided with non-PR Miro boards that happened to share a name, and made it impossible to tell a freshly-generated visualization from a manually-created board on the same topic. The `Visualize PR: …  #N` envelope fixes both.
 
 ### Why titled section bands
 
@@ -573,13 +724,13 @@ For repos that contain both client and server, the skill always emits BEFORE/AFT
 
 | Tool | Used for |
 |---|---|
-| `board_create` | Always; **board name = PR_TITLE verbatim** |
+| `board_create` | Always; **board name = `Visualize PR: <PR_TITLE> #<PR_NUMBER>`** (see §8) |
 | `layout_get_dsl` | **REQUIRED before `layout_create`** — fetch the layout DSL once per run |
 | `layout_create` | The single frame + its children (banner, section strips, columns) |
 | `diagram_get_dsl` | **REQUIRED before `diagram_create_mermaid`** — fetch per diagram type |
 | `diagram_create_mermaid` | BEFORE / AFTER architecture diagrams (and any §9i extras) |
-| `shape_create` | Pill labels, topic-tag chips, legend swatches, section title strips (when the layout DSL doesn't expose them as composites) |
-| `text_create` | Banner title / metadata / section strip text / legend labels |
+| `shape_create` | Pill labels, topic-tag chips, **diagram container cards (§9e)**, **legend card + swatches (§9f)**, section title strips (when the layout DSL doesn't expose them as composites) |
+| `text_create` | Banner title / metadata / section strip text / pill labels / legend labels |
 | `table_create` | OWASP Threats table, Files Changed table |
 | `doc_create` | Summary of Changes document |
 | `code_widget_create` | Optional High-impact code snippets (only when asked, §9i) |
